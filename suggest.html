@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .suggest__popup {
+            position: absolute;
+
+            padding: 4px 8px;
+
+            border-radius: 4px;
+            border: 1px solid #333;
+            border-left: none;
+            box-shadow: #3333 2px 0px 2px;
+            background: white;
+        }
+        .suggest__popup_hidden {
+            display: none;
+        }
+
+        .suggest__popup-item {
+            cursor: pointer;
+        }
+
+        .suggest__popup-item:hover {
+            background: lightsalmon;
+        }
+
+    </style>
+</head>
+<body>
+    <input class="suggest">
+    <script src="cities.js"></script>
+    <script>
+        class Suggest {
+            constructor(element, data, field) {
+                let htmlElement;
+                if (typeof element === 'string') {
+                    htmlElement = document.querySelector(element);
+                    if (!htmlElement) {
+                        throw new Error('No element with selector ' + element);
+                    }
+                } else {
+                    htmlElement = element;
+                }
+
+                if (htmlElement.tagName !== 'INPUT') {
+                    throw new Error('Support only input');
+                }
+
+                this.htmlElement = htmlElement;
+                this.data = data;
+                this.field = field;
+
+                const coords = this.htmlElement.getBoundingClientRect();
+
+                const suggestPopup = document.createElement('div');
+                suggestPopup.classList.add('suggest__popup', 'suggest__popup_hidden');
+                suggestPopup.style.left = coords.left + window.scrollX + 'px';
+                suggestPopup.style.top = coords.bottom + 5 + window.scrollY + 'px';
+                document.body.appendChild(suggestPopup);
+
+                this.suggestPopup = suggestPopup;
+
+                this.onInput = this.onInput.bind(this);
+                this.onSuggestClick = this.onSuggestClick.bind(this);
+
+                this.htmlElement.addEventListener('input', this.onInput);
+                this.suggestPopup.addEventListener('click', this.onSuggestClick);
+            }
+
+            setValue(value) {
+                this.htmlElement.value = value;
+            }
+
+            getValue() {
+                return this.htmlElement.value;
+            }
+
+            onInput() {
+                this.suggestPopup.innerHTML = '';
+
+                const value = this.htmlElement.value.slice(0, 1).toUpperCase() +
+                    this.htmlElement.value.slice(1).toLowerCase();
+
+                const result = this.data.filter(
+                    element => element[this.field].startsWith(value)
+                );
+
+                if (result.length === 0) {
+                    this.suggestPopup.classList.add('suggest__popup_hidden');
+
+                    return;
+                }
+
+                result.forEach(city => {
+                    const cityElem = document.createElement('div');
+
+                    cityElem.classList.add('suggest__popup-item');
+                    cityElem.textContent = city[this.field];
+                    cityElem.dataset.city = city[this.field];
+
+                    this.suggestPopup.appendChild(cityElem);
+                });
+
+                this.suggestPopup.classList.remove('suggest__popup_hidden');
+            }
+
+            onSuggestClick(event) {
+                const target = event.target;
+
+                if (!target.classList.contains('suggest__popup-item')) {
+                    return;
+                }
+
+                this.htmlElement.value = target.dataset.city;
+
+                this.suggestPopup.classList.add('suggest__popup_hidden');
+            }
+        }
+
+        const suggest = new Suggest('.suggest', cities, 'city'); // {}
+    </script>
+</body>
+</html>

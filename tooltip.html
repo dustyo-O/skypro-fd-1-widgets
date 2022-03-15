@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <style>
+        .content {
+            display: flex;
+            justify-content: center;
+
+            margin-top: 300px;
+        }
+
+        .tooltip__popup {
+            position: absolute;
+
+            padding: 2px 3px;
+
+            border-radius: 3px;
+            border: 1px solid #3333;
+            border-left: none;
+            box-shadow: #3333 2px 0px 2px;
+            background: white;
+        }
+
+        .tooltip__popup::before {
+            position: absolute;
+            left: -7px;
+            top: 2px;
+            z-index: -1;
+
+            display: inline-block;
+
+            content: '';
+
+            width: 14px;
+            height: 14px;
+
+            transform: rotate(45deg);
+
+            border: 1px solid #3333;
+            background: white;
+        }
+
+        .tooltip__popup_hidden {
+            display:none;
+        }
+
+        .tooltip {
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+    <main class="content">
+        <i class="fa fa-info-circle tooltip" aria-hidden="true" data-tooltip="Важная информация"></i>
+    </main>
+    <i class="fa fa-info-circle tooltip" aria-hidden="true" data-tooltip="Неважная информация"></i>
+    <script>
+        const app = {
+            currentTooltipTimer: undefined,
+        };
+        const tooltips = document.querySelectorAll('.tooltip');
+
+        const tooltipPopup = document.createElement('div');
+
+        tooltipPopup.classList.add('tooltip__popup', 'tooltip__popup_hidden');
+        tooltipPopup.textContent = 'Тест';
+
+        document.body.appendChild(tooltipPopup);
+
+        function hideTooltip(event) {
+            tooltipPopup.classList.add('tooltip__popup_hidden');
+        }
+
+        function showTooltip(event) {
+            if (app.currentTooltipTimer) {
+                clearTimeout(app.currentTooltipTimer);
+
+                app.currentTooltipTimer = undefined;
+            }
+
+            const tooltip = event.target;
+
+            console.log(tooltip.dataset.tooltip);
+
+            tooltipPopup.textContent = tooltip.dataset.tooltip;
+            tooltipPopup.classList.remove('tooltip__popup_hidden');
+
+            const coords = tooltip.getBoundingClientRect();
+
+            tooltipPopup.style.left = coords.right + window.scrollX + 10 + 'px';
+            tooltipPopup.style.top = coords.top + window.scrollY + tooltip.offsetHeight / 2 - tooltipPopup.offsetHeight / 2 + 'px';
+
+            app.currentTooltipTimer = setTimeout(hideTooltip, 5000);
+        }
+
+        tooltips.forEach(tooltip => {
+            tooltip.addEventListener('mouseenter', showTooltip);
+        });
+    </script>
+</body>
+</html>
